@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class CrosswordMaker {
+
     private final int size;
     private final char[][] grid;
     private final List<String> placedWords = new ArrayList<>();
@@ -14,12 +15,10 @@ public class CrosswordMaker {
     }
 
     public boolean placeWord(String word) {
-        // First word: place in the center horizontally
+        // First word: place it in the middle horizontally
         if (placedWords.isEmpty()) {
-            // int row = size / 2;
-            // int col = (size - word.length()) / 2;
-            int row = 1;
-            int col = 1;
+            int row = size / 2;
+            int col = (size - word.length()) / 2;
             if (canPlaceHorizontally(word, row, col)) {
                 for (int i = 0; i < word.length(); i++) {
                     grid[row][col + i] = word.charAt(i);
@@ -30,14 +29,14 @@ public class CrosswordMaker {
             return false;
         }
 
-        // Try to find a place where it can cross with an existing word
+        // Try to cross with already placed letters
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 char c = grid[row][col];
                 for (int i = 0; i < word.length(); i++) {
                     if (word.charAt(i) == c) {
-
-                        // Try placing horizontally
+                        
+                        // Try horizontal placement
                         int startCol = col - i;
                         if (startCol >= 0 && startCol + word.length() <= size) {
                             if (canPlaceHorizontally(word, row, startCol)) {
@@ -49,7 +48,7 @@ public class CrosswordMaker {
                             }
                         }
 
-                        // Try placing vertically
+                        // Try vertical placement
                         int startRow = row - i;
                         if (startRow >= 0 && startRow + word.length() <= size) {
                             if (canPlaceVertically(word, startRow, col)) {
@@ -64,64 +63,60 @@ public class CrosswordMaker {
                 }
             }
         }
+
         return false;
     }
 
     private boolean canPlaceHorizontally(String word, int row, int col) {
-        // Check cell before the word
-        if (col > 0 && grid[row][col - 1] != '.')
-            return false;
+        // Check left buffer
+        if (col > 0 && grid[row][col - 1] != '.') return false;
 
-        // Check cell after the word
-        if (col + word.length() < size && grid[row][col + word.length()] != '.')
-            return false;
+        // Check right buffer
+        if (col + word.length() < size && grid[row][col + word.length()] != '.') return false;
 
         for (int i = 0; i < word.length(); i++) {
             char current = grid[row][col + i];
 
-            // Conflict with existing letter
-            if (current != '.' && current != word.charAt(i))
-                return false;
+            // Conflict with a different letter
+            if (current != '.' && current != word.charAt(i)) return false;
 
-            // Check cells above and below to ensure isolation unless it's a valid
-            // intersection
-            if (row > 0 && grid[row - 1][col + i] != '.')
-                return false;
-            if (row < size - 1 && grid[row + 1][col + i] != '.')
-                return false;
+            // Avoid adjacent words unless it's a crossing letter
+            if (current == '.') {
+                if (row > 0 && grid[row - 1][col + i] != '.') return false;
+                if (row < size - 1 && grid[row + 1][col + i] != '.') return false;
+            }
         }
+
         return true;
     }
 
     private boolean canPlaceVertically(String word, int row, int col) {
-        // Check cell before the word
-        if (row > 0 && grid[row - 1][col] != '.')
-            return false;
+        // Check top buffer
+        if (row > 0 && grid[row - 1][col] != '.') return false;
 
-        // Check cell after the word
-        if (row + word.length() < size && grid[row + word.length()][col] != '.')
-            return false;
+        // Check bottom buffer
+        if (row + word.length() < size && grid[row + word.length()][col] != '.') return false;
 
         for (int i = 0; i < word.length(); i++) {
             char current = grid[row + i][col];
 
-            // Conflict with existing letter
-            if (current != '.' && current != word.charAt(i))
-                return false;
+            // Conflict with a different letter
+            if (current != '.' && current != word.charAt(i)) return false;
 
-            // Check cells to the left and right
-            if (col > 0 && grid[row + i][col - 1] != '.')
-                return false;
-            if (col < size - 1 && grid[row + i][col + 1] != '.')
-                return false;
+            // Avoid adjacent words unless it's a crossing letter
+            if (current == '.') {
+                if (col > 0 && grid[row + i][col - 1] != '.') return false;
+                if (col < size - 1 && grid[row + i][col + 1] != '.') return false;
+            }
         }
+
         return true;
     }
 
     public void printGrid() {
         for (char[] row : grid) {
-            for (char ch : row) {
-                System.out.print(ch + " ");
+            for (char c : row) {
+                System.out.print(c + " ");
             }
             System.out.println();
         }
@@ -133,21 +128,23 @@ public class CrosswordMaker {
         }
     }
 
+    // Sample driver
     public static void main(String[] args) {
-        CrosswordMaker crossword = new CrosswordMaker(25);
-        String[] words = { "Apple", "Apricot", "Avocado", "Banana", "Blueberry", "Cherry", "Coconut", "Cranberry",
-                "Date", "Fig", "Grape", "Grapefruit", "Guava", "Kiwi", "Lemon", "Lime", "Mango", "Orange", "Papaya",
-                "Peach", "Pear", "Pineapple", "Plum", "Pomegranate", "Raspberry", "Strawberry", "Watermelon" };
+        CrosswordMaker maker = new CrosswordMaker(30);
+
+        List<String> words = Arrays.asList("apartment", "breeze", "cascade", "dawn", "emerald", "flicker", "glimpse", "harvest", "illusion", "jewel", "kindle", "luminous", "marvel", "nectar", "omega", "puzzle", "quartz", "ripple", "symphony", "twilight", "umbrella", "vortex", "whisper", "xenon", "yonder", "zenith", "orbit", "fusion", "cascade");
 
         for (String word : words) {
-            if (!crossword.placeWord(word)) {
-                System.out.println("Failed to place: " + word);
+            if (!maker.placeWord(word)) {
+                System.out.println("Could not place: " + word);
             }
         }
 
         System.out.println("\nCrossword Grid:");
-        crossword.printGrid();
+        maker.printGrid();
+
         System.out.println("\nPlaced Words:");
-        crossword.printPlacedWords();
+        maker.printPlacedWords();
     }
 }
+
